@@ -7,11 +7,15 @@ The core methodology of this project is Sequential Knowledge Distillation. To ac
 ## Environment Setup
 To set up the environment, it is recommended to use a Python virtual environment or Conda.
 1. **Clone the repository:**
-   `git clone https://github.com/RayhanHaqi/visual_recognition-hw1.git
-   cd visual_recognition-hw1`
-2. **Install dependencies:**
+   ```
+   git clone https://github.com/RayhanHaqi/visual_recognition-hw1.git
+   cd visual_recognition-hw1
+   ```
+3. **Install dependencies:**
    The project requires PyTorch, Torchvision, and other common deep learning libraries.
-   `pip install torch torchvision torchaudio
-   pip install timm tqdm matplotlib pandas`
-3. **Hardware Requirement:**
+   ```
+   pip install torch torchvision torchaudio
+   pip install timm tqdm matplotlib pandas
+   ```
+4. **Hardware Requirement:**
    Due to the size of the Teacher models, an NVIDIA GPU with at least 16GB of VRAM (e.g., RTX 3080/4080 or higher) is recommended for the labeling phase.
