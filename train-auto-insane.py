@@ -23,7 +23,7 @@ else:
     RUN_ID = 10 
 
 with open(TRACKER_FILE, "w") as f: f.write(str(RUN_ID))
-print(f"🔥 INSANE STUDENT RUN {RUN_ID} | TARGET >0.96 | RESOLUTION: 448px | EPOCHS: 75")
+print(f"INSANE STUDENT RUN {RUN_ID} | TARGET >0.96 | RESOLUTION: 448px | EPOCHS: 75")
 
 
 MODELS = ['resnetrs200.tf_in1k']
