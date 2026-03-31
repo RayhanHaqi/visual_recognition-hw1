@@ -30,6 +30,73 @@ To set up the environment, it is recommended to use a Python virtual environment
 
 ## Usage
 
+* To train the student models, edit the train-auto-full.py to change paths variables and the names of models to train.
+  
+   ```
+   MODELS = ['resnetrs200.tf_in1k', 'resnest200e.in1k']
+   DATA_DIR = '/home/tilakoid/selectedtopics/cv_hw1_data/data'
+   ```
+   
+   ```
+   python train-auto-full.py
+   ```
+
+* To train the student models with full tweaking and 448 px resolution input layer, edit the train-auto-insane.py to change paths variables and the names of models to train.
+
+  
+   ```
+   MODELS = ['resnetrs200.tf_in1k', 'resnest200e.in1k']
+   DATA_DIR = '/home/tilakoid/selectedtopics/cv_hw1_data/data'
+   ```
+   
+   ```
+   python train-auto-insane.py
+   ```
+
+* To train the teacher models, edit the train-teacher.py to change paths variables and the names of models to train.
+
+   ```
+   MODELS = [
+    'vit_so400m_patch14_siglip_378.webli_ft_in1k', 
+    'convnext_xxlarge.clip_laion2b_soup_ft_in1k', 
+    'eva02_large_patch14_448.mim_m38m_ft_in22k_in1k'
+   ]
+   DATA_DIR = '/home/tilakoid/selectedtopics/cv_hw1_data/data'
+   ```
+   
+   ```
+   python train-teacher.py
+   ```
+   
+* To do the distillation knowledge learning, edit the train-distill.py to change paths variables and the names of models to train
+
+   ```
+   TEACHER_PATH = '/home/tilakoid/selectedtopics/cv_hw1_data/checkpoints/vit_so400m_patch14_siglip_378.webli_ft_in1k_teacher_best.pth'
+   TEACHER_MODEL_NAME = 'vit_so400m_patch14_siglip_378.webli_ft_in1k'
+   
+   STUDENT_MODEL_NAME = 'resnetrs200.tf_in1k'
+   STUDENT_PATH = '/home/tilakoid/selectedtopics/cv_hw1_data/checkpoints/insane_resnetrs200.tf_in1k_run8_best.pth' 
+   
+   DATA_DIR = '/home/tilakoid/selectedtopics/cv_hw1_data/data'
+   ```
+   
+   ```
+   python train-distill.py
+   ```
+
+* To generate submission file for codabench, edit the generate-submission.py to change paths variables and the names of models to train
+
+   ```
+   CHECKPOINT_PATH = '/home/tilakoid/selectedtopics/cv_hw1_data/checkpoints/distill_resnetrs200.tf_in1k-vit_so400m_patch14_siglip_378.pth'
+   
+   DATA_DIR = '/home/tilakoid/selectedtopics/cv_hw1_data/data/' 
+   ```
+
+   ```
+   python generate-submission.py
+   ```
+  
+
 ## Performance Snapshot
 The implementation achieves the following performance metrics on the 100-class classification task:
 
@@ -39,4 +106,3 @@ The implementation achieves the following performance metrics on the 100-class c
 
 * Top-1 Accuracy: 0.96+
 
-* Optimization: Stochastic Gradient Descent (SGD) with Cosine Annealing scheduler.
