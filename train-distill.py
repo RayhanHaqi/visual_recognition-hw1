@@ -14,9 +14,6 @@ import gc
 from tqdm import tqdm
 from sklearn.metrics import precision_recall_fscore_support
 
-# ==========================================
-# 1. TRACKER & RUN ID
-# ==========================================
 TRACKER_FILE = "run_tracker_distill.txt"
 if os.path.exists(TRACKER_FILE):
     with open(TRACKER_FILE, "r") as f:
@@ -27,14 +24,9 @@ else:
 with open(TRACKER_FILE, "w") as f: f.write(str(RUN_ID))
 print(f"🔥 DISTILLATION RUN {RUN_ID} | TARGET: 0.95+")
 
-# ==========================================
-# 2. KONFIGURASI UTAMA
-# ==========================================
-# --- GURU (TEACHER) ---
 TEACHER_PATH = '/home/tilakoid/selectedtopics/cv_hw1_data/checkpoints/vit_so400m_patch14_siglip_378.webli_ft_in1k_teacher_best.pth'
 TEACHER_MODEL_NAME = 'vit_so400m_patch14_siglip_378.webli_ft_in1k'
 
-# --- MURID (STUDENT) ---
 STUDENT_MODEL_NAME = 'resnetrs200.tf_in1k'
 STUDENT_PATH = '/home/tilakoid/selectedtopics/cv_hw1_data/checkpoints/insane_resnetrs200.tf_in1k_run8_best.pth' 
 
@@ -43,13 +35,12 @@ NUM_CLASSES = 100
 EPOCHS = 25
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# DYNAMIC BATCH & ACCUMULATION
-TEACHER_BATCH_SIZE = 8   # VRAM Safe untuk SigLIP
-PHYSICAL_BATCH_SIZE = 16 # VRAM Safe untuk ResNet-RS
+
+TEACHER_BATCH_SIZE = 8  
+PHYSICAL_BATCH_SIZE = 16 
 TARGET_BATCH = 64
 ACC_STEPS = max(1, TARGET_BATCH // PHYSICAL_BATCH_SIZE)
 
-# DISTILLATION PARAMS
 TEMPERATURE = 4.0
 ALPHA = 0.9 
 SOFT_LABELS_PATH = f'checkpoints/teacher_soft_labels_run{RUN_ID}.pt'
@@ -59,9 +50,7 @@ os.makedirs("checkpoints", exist_ok=True)
 os.makedirs("logs", exist_ok=True)
 SUMMARY_CSV = "results/distill_summary.csv"
 
-# ==========================================
-# 3. HELPER FUNCTIONS UNTUK LOGGING
-# ==========================================
+
 def save_summary(data):
     file_exists = os.path.isfile(SUMMARY_CSV)
     with open(SUMMARY_CSV, mode='a', newline='') as f:
@@ -77,9 +66,6 @@ def log_epoch_progress(run_id, epoch_data):
         if not file_exists: writer.writeheader()
         writer.writerow(epoch_data)
 
-# ==========================================
-# 4. CUSTOM DATASET FOR DISTILLATION
-# ==========================================
 class DistillDataset(Dataset):
     def __init__(self, base_dataset, soft_labels):
         self.base_dataset = base_dataset
@@ -93,11 +79,8 @@ class DistillDataset(Dataset):
     def __len__(self):
         return len(self.base_dataset)
 
-# ==========================================
-# 5. FASE 1: LABELING (GURU BEKERJA)
-# ==========================================
 def run_labeling():
-    print(f"\n🧠 FASE 1: Guru ({TEACHER_MODEL_NAME}) melabeli dataset...")
+    print(f"\nPhase 1: Teacher ({TEACHER_MODEL_NAME}) labeling dataset...")
     img_size = 378 if "siglip" in TEACHER_MODEL_NAME else 320
     
     transform_labeling = transforms.Compose([
@@ -128,20 +111,17 @@ def run_labeling():
     gc.collect()
     
     torch.save(all_soft_labels, SOFT_LABELS_PATH)
-    print(f"💾 Soft labels berhasil disimpan ke {SOFT_LABELS_PATH}")
-    print("✅ Labeling selesai. GPU dibersihkan.")
+    print(f"Soft labels saved to {SOFT_LABELS_PATH}")
+    print("Finished labeling. GPU released.")
     return all_soft_labels
 
-# ==========================================
-# 6. FASE 2: TRAINING (MURID BELAJAR)
-# ==========================================
 def train_distill(soft_labels):
-    print(f"\n🔥 FASE 2: Training Murid ({STUDENT_MODEL_NAME}) dari Checkpoint...")
+    print(f"\nPhase 2: Training Student ({STUDENT_MODEL_NAME}) from checkpoint...")
     start_time = time.time()
     img_size = 320
     
     model = timm.create_model(STUDENT_MODEL_NAME, pretrained=False, num_classes=NUM_CLASSES, drop_path_rate=0.1)
-    print(f"📥 Loading student checkpoint: {STUDENT_PATH}")
+    print(f"Loading student checkpoint: {STUDENT_PATH}")
     model.load_state_dict(torch.load(STUDENT_PATH, map_location='cpu'))
     model.to(DEVICE)
     
@@ -211,7 +191,6 @@ def train_distill(soft_labels):
             train_loss_total += loss.item() * ACC_STEPS
             pbar.set_postfix({'loss': f"{loss.item()*ACC_STEPS:.4f}"})
 
-        # --- VALIDASI & METRICS ---
         model_ema.module.eval()
         top1_correct, top5_correct, total = 0, 0, 0
         all_preds, all_targets = [], []
@@ -221,7 +200,6 @@ def train_distill(soft_labels):
             for inputs, labels in val_loader:
                 inputs, labels = inputs.to(DEVICE), labels.to(DEVICE)
                 with torch.amp.autocast('cuda'):
-                    # Test-Time Augmentation
                     out = (model_ema.module(inputs) + model_ema.module(torch.flip(inputs, [3]))) / 2.0
                     loss_v = F.cross_entropy(out, labels)
                 
@@ -243,16 +221,14 @@ def train_distill(soft_labels):
         
         precision, recall, f1, _ = precision_recall_fscore_support(all_targets, all_preds, average='macro', zero_division=0)
         
-        # LOG EPOCH
         epoch_results = {
             "Epoch": epoch, "T_Loss": f"{avg_train_loss:.4f}", "V_Loss": f"{avg_val_loss:.4f}",
             "Top1_Acc": f"{val_acc:.2f}", "Top5_Acc": f"{top5_acc:.2f}", 
             "F1_Score": f"{f1*100:.2f}", "Precision": f"{precision*100:.2f}", "Recall": f"{recall*100:.2f}"
         }
         log_epoch_progress(RUN_ID, epoch_results)
-        print(f"📊 Ep {epoch} | T-Loss: {avg_train_loss:.4f} | Val Acc: {val_acc:.2f}% | Top5: {top5_acc:.2f}% | F1: {f1*100:.2f}%")
+        print(f"Ep {epoch} | T-Loss: {avg_train_loss:.4f} | Val Acc: {val_acc:.2f}% | Top5: {top5_acc:.2f}% | F1: {f1*100:.2f}%")
 
-        # SAVE BEST
         if val_acc > best_acc:
             best_acc = val_acc
             best_metrics = {
@@ -273,11 +249,11 @@ def train_distill(soft_labels):
 # ==========================================
 if __name__ == "__main__":
     if os.path.exists(SOFT_LABELS_PATH):
-        print(f"📦 Ditemukan file soft labels di {SOFT_LABELS_PATH}.")
-        print("⏩ Melewati Fase 1 (Labeling Guru) dan langsung memuat ke RAM...")
+        print(f"Found soft labels at {SOFT_LABELS_PATH}.")
+        print("Skipping Phase 1 (Labeling Guru) and loading from RAM...")
         computed_soft_labels = torch.load(SOFT_LABELS_PATH)
     else:
-        print("⚠️ File soft labels belum ada. Memulai Fase 1 dari awal...")
+        print("Soft labels not found. Starting Phase 1 from scratch...")
         computed_soft_labels = run_labeling()
     
     train_distill(computed_soft_labels)

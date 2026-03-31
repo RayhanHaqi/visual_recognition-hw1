@@ -14,9 +14,7 @@ import numpy as np
 from tqdm import tqdm
 from sklearn.metrics import precision_recall_fscore_support
 
-# ==========================================
-# 1. TRACKER & RUN ID
-# ==========================================
+
 TRACKER_FILE = "run_tracker_teacher.txt"
 if os.path.exists(TRACKER_FILE):
     with open(TRACKER_FILE, "r") as f:
@@ -25,11 +23,9 @@ else:
     RUN_ID = 10 
 
 with open(TRACKER_FILE, "w") as f: f.write(str(RUN_ID))
-print(f"🔥 TEACHER FINAL RUN {RUN_ID} | RES: 448px | EPOCHS: 80")
+print(f"TEACHER FINAL RUN {RUN_ID} | RES: 448px | EPOCHS: 40")
 
-# ==========================================
-# 2. KONFIGURASI GLOBAL
-# ==========================================
+
 MODELS = [
     'vit_so400m_patch14_siglip_378.webli_ft_in1k', 
     'convnext_xxlarge.clip_laion2b_soup_ft_in1k', 
@@ -37,7 +33,7 @@ MODELS = [
 ]
 DATA_DIR = '/home/tilakoid/selectedtopics/cv_hw1_data/data'
 NUM_CLASSES = 100
-EPOCHS = 80
+EPOCHS = 40
 IMG_SIZE = 448 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -49,7 +45,6 @@ mixup_fn = Mixup(
     switch_prob=0.5, mode='batch', label_smoothing=0.1, num_classes=NUM_CLASSES
 )
 
-# --- PERUBAHAN NAMA FOLDER (FINAL PREFIX) ---
 os.makedirs("final_results", exist_ok=True)
 os.makedirs("final_checkpoints", exist_ok=True)
 os.makedirs("final_logs", exist_ok=True)
@@ -70,9 +65,7 @@ def log_epoch_progress(model_name, run_id, epoch_data):
         if not file_exists: writer.writeheader()
         writer.writerow(epoch_data)
 
-# ==========================================
-# 3. TRAINING ENGINE
-# ==========================================
+
 def train_teacher(model_name, start_batch_size):
     current_bs = start_batch_size
     success = False
@@ -80,7 +73,7 @@ def train_teacher(model_name, start_batch_size):
     while not success and current_bs >= 1:
         try:
             start_time = time.time()
-            print(f"\n🚀 Final Run: {model_name} | BS: {current_bs}")
+            print(f"\nFinal Run: {model_name} | BS: {current_bs}")
             
             if any(x in model_name for x in ["vit", "siglip", "eva"]):
                 model = timm.create_model(model_name, pretrained=True, num_classes=NUM_CLASSES, 
@@ -187,7 +180,7 @@ def train_teacher(model_name, start_batch_size):
                     "F1_Score": f"{f1*100:.2f}", "Precision": f"{precision*100:.2f}", "Recall": f"{recall*100:.2f}"
                 }
                 log_epoch_progress(model_name, RUN_ID, epoch_results)
-                print(f"📊 Val Acc: {val_acc:.2f}%")
+                print(f"Val Acc: {val_acc:.2f}%")
                 
                 if val_acc > best_acc:
                     best_acc = val_acc
@@ -204,7 +197,7 @@ def train_teacher(model_name, start_batch_size):
 
         except RuntimeError as e:
             if "out of memory" in str(e).lower():
-                print(f"⚠️ OOM pada {model_name} (BS {current_bs}). Menurunkan BS...")
+                print(f"OOM at {model_name} (BS {current_bs}). Reducing BS...")
                 current_bs //= 2
                 torch.cuda.empty_cache()
                 gc.collect()

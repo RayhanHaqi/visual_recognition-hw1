@@ -14,22 +14,18 @@ import numpy as np
 from tqdm import tqdm
 from sklearn.metrics import precision_recall_fscore_support
 
-# ==========================================
-# 1. TRACKER & RUN ID
-# ==========================================
+
 TRACKER_FILE = "run_tracker_student.txt"
 if os.path.exists(TRACKER_FILE):
     with open(TRACKER_FILE, "r") as f:
         RUN_ID = int(f.read().strip()) + 1
 else:
-    RUN_ID = 10 # Lompat ke ID tinggi untuk menandakan Insane Run
+    RUN_ID = 10 
 
 with open(TRACKER_FILE, "w") as f: f.write(str(RUN_ID))
 print(f"🔥 INSANE STUDENT RUN {RUN_ID} | TARGET >0.96 | RESOLUTION: 448px | EPOCHS: 75")
 
-# ==========================================
-# 2. KONFIGURASI GLOBAL
-# ==========================================
+
 MODELS = ['resnetrs200.tf_in1k']
 DATA_DIR = '/home/tilakoid/selectedtopics/cv_hw1_data/data'
 NUM_CLASSES = 100
@@ -37,9 +33,8 @@ EPOCHS = 75
 IMG_SIZE = 448 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# Tweak VRAM: 448px sangat berat. Gunakan BS kecil + Accumulation besar.
-PHYSICAL_BATCH_SIZE = 4  # Kecil agar muat di VRAM
-ACC_STEPS = 16          # Efektif Batch Size = 64 (4 * 16)
+PHYSICAL_BATCH_SIZE = 4  
+ACC_STEPS = 16          
 
 mixup_fn = Mixup(
     mixup_alpha=0.8, cutmix_alpha=1.0, prob=1.0, 
@@ -66,15 +61,12 @@ def log_epoch_progress(model_name, run_id, epoch_data):
         if not file_exists: writer.writeheader()
         writer.writerow(epoch_data)
 
-# ==========================================
-# 3. TRAINING ENGINE
-# ==========================================
 def train_student(model_name, batch_size):
     start_time = time.time()
-    print(f"\n🚀 Memproses Student (Insane Mode): {model_name}")
+    print(f"\n🚀 Processing Student (Insane Mode): {model_name}")
     
     model = timm.create_model(model_name, pretrained=True, num_classes=NUM_CLASSES, 
-                             drop_path_rate=0.15).to(DEVICE) # Drop path dinaikkan untuk regularisasi
+                             drop_path_rate=0.15).to(DEVICE) 
     
     model_ema = ModelEmaV2(model, decay=0.9999) 
 
@@ -136,7 +128,6 @@ def train_student(model_name, batch_size):
             train_loss_total += loss.item() * ACC_STEPS
             pbar.set_postfix({'loss': f"{loss.item()*ACC_STEPS:.4f}"})
 
-        # --- VALIDASI & METRIKS (TTA) ---
         model_ema.module.eval()
         top1_correct, top5_correct, total = 0, 0, 0
         all_preds, all_targets = [], []

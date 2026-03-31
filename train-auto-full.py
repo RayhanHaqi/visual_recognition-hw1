@@ -13,9 +13,7 @@ import numpy as np
 from tqdm import tqdm
 from sklearn.metrics import precision_recall_fscore_support
 
-# ==========================================
-# 0. SISTEM PELACAKAN OTOMATIS (RUN ID)
-# ==========================================
+
 TRACKER_FILE = "run_tracker_student.txt"
 if os.path.exists(TRACKER_FILE):
     with open(TRACKER_FILE, "r") as f:
@@ -24,16 +22,14 @@ else:
     RUN_ID = 2 
 
 with open(TRACKER_FILE, "w") as f: f.write(str(RUN_ID))
-print(f"🔥 MEMULAI STUDENT RUN {RUN_ID}: FULL METRICS MODE")
+print(f"Student RUN {RUN_ID}: FULL METRICS MODE")
 
-# ==========================================
-# 1. KONFIGURASI STUDENT
-# ==========================================
+
 MODELS = ['resnetrs200.tf_in1k', 'resnest200e.in1k']
 DATA_DIR = '/home/tilakoid/selectedtopics/cv_hw1_data/data'
 NUM_CLASSES = 100
 EPOCHS = 30      
-IMG_SIZE = 320   # Menggunakan resolusi tinggi hasil eksperimen sebelumnya
+IMG_SIZE = 320  
 INITIAL_BATCH_SIZE = 32 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -49,12 +45,10 @@ def save_summary(data):
         if not file_exists: writer.writeheader()
         writer.writerow(data)
 
-# ==========================================
-# 2. TRAINING ENGINE
-# ==========================================
+
 def train_student(model_name, batch_size):
     start_time = time.time()
-    print(f"\n🚀 Training Student: {model_name} @ {IMG_SIZE}px")
+    print(f"\nTraining Student: {model_name} @ {IMG_SIZE}px")
     
     model = timm.create_model(model_name, pretrained=True, num_classes=NUM_CLASSES, drop_path_rate=0.1).to(DEVICE)
     model_ema = ModelEmaV2(model, decay=0.9998)
@@ -113,7 +107,6 @@ def train_student(model_name, batch_size):
             train_loss_total += loss.item()
             pbar.set_postfix({'loss': f"{loss.item():.4f}"})
 
-        # --- VALIDASI LENGKAP (Top-1, Top-5, TTA, Precision, Recall, F1) ---
         model_ema.module.eval()
         top1_correct, top5_correct, total = 0, 0, 0
         all_preds, all_targets = [], []
@@ -123,17 +116,14 @@ def train_student(model_name, batch_size):
             for inputs, labels in val_loader:
                 inputs, labels = inputs.to(DEVICE), labels.to(DEVICE)
                 with torch.amp.autocast('cuda'):
-                    # TTA: Average Original + Flip
                     out = (model_ema.module(inputs) + model_ema.module(torch.flip(inputs, [3]))) / 2.0
                     loss_v = criterion(out, labels)
                 
                 val_loss_total += loss_v.item()
                 
-                # Akurasi Top-1
                 _, pred1 = out.topk(1, 1, True, True)
                 top1_correct += (pred1.flatten() == labels).sum().item()
                 
-                # Akurasi Top-5
                 _, pred5 = out.topk(5, 1, True, True)
                 top5_correct += (pred5 == labels.view(-1, 1)).sum().item()
                 
@@ -141,7 +131,6 @@ def train_student(model_name, batch_size):
                 all_preds.extend(pred1.flatten().cpu().numpy())
                 all_targets.extend(labels.cpu().numpy())
                 
-        # Kalkulasi Metrik Final
         val_acc = 100. * top1_correct / total
         top5_acc = 100. * top5_correct / total
         avg_val_loss = val_loss_total / len(val_loader)
@@ -151,7 +140,7 @@ def train_student(model_name, batch_size):
         )
         
         log_msg = f"Epoch {epoch} | T-Loss: {train_loss_total/len(train_loader):.4f} | Val Acc: {val_acc:.2f}% | Top-5: {top5_acc:.2f}% | F1: {f1*100:.2f}%"
-        print(f"📊 {log_msg}")
+        print(f"{log_msg}")
         with open(f"logs/{model_name}_run{RUN_ID}.txt", "a") as f: f.write(f"{log_msg}\n")
             
         if val_acc > best_acc:
@@ -187,5 +176,5 @@ if __name__ == "__main__":
                     current_bs -= 4
                     torch.cuda.empty_cache()
                     gc.collect()
-                    print(f"⚠️ OOM. Menurunkan batch size ke {current_bs}...")
+                    print(f"⚠️ OOM. Reducing batch size to {current_bs}...")
                 else: raise e
