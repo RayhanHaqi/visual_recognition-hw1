@@ -1,0 +1,4 @@
+Model,Epoch,Best_Top1_Acc,Top5_Acc,F1_Score,Precision,Recall,Val_Loss,Final_BS,Time_Min
+res2net101_26w_4s.in1k,19,84.67,94.67,83.41,85.99,84.67,1.3762,64,28.8
+resnetrs200.tf_in1k,19,86.67,97.33,85.50,88.13,86.67,1.4529,64,55.9
+resnest200e.in1k,16,88.00,97.33,87.33,89.90,88.00,1.3401,64,64.3

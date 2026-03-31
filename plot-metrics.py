@@ -1,0 +1,71 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+
+def plot_training_metrics(csv_file):
+    # 1. Baca data dari CSV
+    try:
+        df = pd.read_csv(csv_file)
+    except FileNotFoundError:
+        print(f"File {csv_file} tidak ditemukan!")
+        return
+
+    # Pastikan kolom Epoch ada
+    if 'Epoch' not in df.columns:
+        print("Error: Kolom 'Epoch' tidak ditemukan dalam data.")
+        return
+
+    epochs = df['Epoch']
+
+    # 2. Siapkan figure dengan 3 subplot (3 baris, 1 kolom)
+    fig, axes = plt.subplots(3, 1, figsize=(10, 15), sharex=True)
+    fig.suptitle('Training & Validation Metrics', fontsize=16, fontweight='bold')
+
+    # --- Subplot 1: Loss ---
+    ax1 = axes[0]
+    if 'T_Loss' in df.columns and 'V_Loss' in df.columns:
+        ax1.plot(epochs, df['T_Loss'], label='Training Loss', color='tab:red', marker='o')
+        ax1.plot(epochs, df['V_Loss'], label='Validation Loss', color='tab:orange', marker='s')
+        ax1.set_ylabel('Loss')
+        ax1.set_title('Training vs Validation Loss')
+        ax1.legend()
+        ax1.grid(True, linestyle='--', alpha=0.7)
+
+    # --- Subplot 2: Accuracy ---
+    ax2 = axes[1]
+    if 'Top1_Acc' in df.columns and 'Top5_Acc' in df.columns:
+        ax2.plot(epochs, df['Top1_Acc'], label='Top-1 Accuracy (%)', color='tab:blue', marker='o')
+        ax2.plot(epochs, df['Top5_Acc'], label='Top-5 Accuracy (%)', color='tab:cyan', marker='s')
+        ax2.set_ylabel('Accuracy (%)')
+        ax2.set_title('Top-1 vs Top-5 Accuracy')
+        ax2.legend()
+        ax2.grid(True, linestyle='--', alpha=0.7)
+
+    # --- Subplot 3: F1, Precision, Recall ---
+    ax3 = axes[2]
+    metrics_cols = ['F1_Score', 'Precision', 'Recall']
+    colors = ['tab:green', 'tab:purple', 'tab:brown']
+    markers = ['o', 's', '^']
+    
+    for col, color, marker in zip(metrics_cols, colors, markers):
+        if col in df.columns:
+            ax3.plot(epochs, df[col], label=f'{col} (%)', color=color, marker=marker)
+            
+    ax3.set_xlabel('Epoch', fontsize=12)
+    ax3.set_ylabel('Score (%)')
+    ax3.set_title('F1-Score, Precision, and Recall')
+    ax3.legend()
+    ax3.grid(True, linestyle='--', alpha=0.7)
+
+    # 3. Rapihkan layout dan simpan/tampilkan
+    plt.tight_layout(rect=[0, 0.03, 1, 0.97]) # Memberi ruang untuk suptitle
+    
+    # Simpan grafik ke file (opsional)
+    plt.savefig('training_curves.png', dpi=300, bbox_inches='tight')
+    print("Grafik berhasil disimpan sebagai 'training_curves.png'")
+    
+    # Tampilkan grafik di layar
+    plt.show()
+
+if __name__ == "__main__":
+    # Ganti 'metrics.csv' dengan nama file data kamu
+    plot_training_metrics('/home/tilakoid/selectedtopics/cv_hw1_data/logs/insane_resnetrs200.tf_in1k_run8_progress.csv')

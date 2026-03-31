@@ -1,0 +1,18 @@
+🚀 Memulai Eksperimen: resnetrs200.tf_in1k (fine_tune) dengan AMP
+Epoch 0 | Jam: 17:56:29 | Val Acc: 75.67% | Durasi: 152.7s (Saved Best!)
+Epoch 1 | Jam: 17:59:17 | Val Acc: 78.67% | Durasi: 167.1s (Saved Best!)
+Epoch 2 | Jam: 18:01:55 | Val Acc: 79.00% | Durasi: 158.5s (Saved Best!)
+Epoch 3 | Jam: 18:04:31 | Val Acc: 82.33% | Durasi: 155.3s (Saved Best!)
+Epoch 4 | Jam: 18:07:16 | Val Acc: 81.67% | Durasi: 164.8s
+Epoch 5 | Jam: 18:09:55 | Val Acc: 82.00% | Durasi: 159.2s
+Epoch 6 | Jam: 18:13:05 | Val Acc: 82.67% | Durasi: 189.4s (Saved Best!)
+Epoch 7 | Jam: 18:15:56 | Val Acc: 83.33% | Durasi: 171.2s (Saved Best!)
+Epoch 8 | Jam: 18:18:37 | Val Acc: 81.33% | Durasi: 160.7s
+Epoch 9 | Jam: 18:21:30 | Val Acc: 81.33% | Durasi: 173.3s
+Epoch 10 | Jam: 18:24:02 | Val Acc: 80.00% | Durasi: 152.0s
+Epoch 11 | Jam: 18:26:34 | Val Acc: 81.33% | Durasi: 152.1s
+Epoch 12 | Jam: 18:29:06 | Val Acc: 82.00% | Durasi: 151.3s
+Epoch 13 | Jam: 18:31:42 | Val Acc: 82.67% | Durasi: 156.1s
+Epoch 14 | Jam: 18:34:21 | Val Acc: 81.33% | Durasi: 159.4s
+
+✅ Eksperimen Selesai! Best Val Acc: 83.33%

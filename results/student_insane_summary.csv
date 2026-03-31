@@ -1,0 +1,2 @@
+Run_ID,Model,Epoch,Best_Top1_Acc,Top5_Acc,F1_Score,Precision,Recall,Val_Loss,Final_BS,Time_Min
+8,resnetrs200.tf_in1k,65,93.00,98.33,92.49,94.00,93.00,1.5812,4,630.9

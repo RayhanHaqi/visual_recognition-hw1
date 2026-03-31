@@ -1,0 +1,2 @@
+Run_ID,Student,Teacher,Epoch,Best_Top1_Acc,Top5_Acc,F1_Score,Precision,Recall,Val_Loss,Time_Min
+1,resnetrs200.tf_in1k,vit_so400m_patch14_siglip_378.webli_ft_in1k,16,90.33,98.00,89.77,91.60,90.33,0.5379,85.9
